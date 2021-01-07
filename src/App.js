@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button, Card, Divider, Input, Space, Typography } from "antd";
 import styled from "styled-components";
@@ -13,7 +13,6 @@ const Container = styled.div`
 `;
 
 const App = props => {
-  const [newTask, setNewTask] = useState({});
   const [todos, setTodos] = useState({
     "data": [
       {
@@ -43,21 +42,15 @@ const App = props => {
     ]
   });
 
-  const taskInputHandler = event => {
-    const newTask = {
-      "name": event.target.value,
-      "isAllDone": false,
-      "task": []
-    }
-    setNewTask(newTask);
-  };
-
-  const onCreateTask = () => {
-    const createTaskName = newTask;
+  const onCreateTask = (taskName, taskId) => {
     const curTodos = { ...todos };
     curTodos.data = [...todos.data];
-    curTodos.data.push(createTaskName);
-    const newTaskId = curTodos.data.length-1;
+    curTodos.data.push({
+      "name": taskName,
+      "isAllDone": false,
+      "task": []
+    });
+    const newTaskId = curTodos.data.length - 1;
     curTodos.data[newTaskId].isAllDone = checkAllTaskDone(newTaskId, curTodos);
     setTodos(curTodos);
   };
@@ -79,7 +72,7 @@ const App = props => {
     // update isAllDone
     curTodos.data[taskId].isAllDone = checkAllTaskDone(taskId, curTodos);
     setTodos(curTodos);
-  }
+  };
 
   const onTaskDone = (subTaskId, taskId) => {
     const curTodos = { ...todos };
@@ -90,7 +83,14 @@ const App = props => {
     curTodos.data[taskId].task[subTaskId].isDone = !curTodos.data[taskId].task[subTaskId].isDone;
     curTodos.data[taskId].isAllDone = checkAllTaskDone(taskId, curTodos);
     setTodos(curTodos);
-  }
+  };
+
+  const onDeleteTask = id => {
+    const curTodos = { ...todos };
+    curTodos.data = [...todos.data];
+    curTodos.data.splice(id, 1);
+    setTodos(curTodos);
+  };
 
   const onDeleteSubTask = (subTaskId, taskId) => {
     const curTodos = { ...todos };
@@ -100,7 +100,7 @@ const App = props => {
     curTodos.data[taskId].task.splice(subTaskId, 1);
     curTodos.data[taskId].isAllDone = checkAllTaskDone(taskId, curTodos);
     setTodos(curTodos);
-  }
+  };
 
   const checkAllTaskDone = (taskId, curTodos) => {
     let isAllDone = true;
@@ -115,6 +115,20 @@ const App = props => {
       };
     };
     return (isAllDone);
+  };
+
+  const InputEl = (props) => {
+    const [taskName, setTaskName] = useState("");
+    return (
+      <div>
+        <Input placeholder={props.placeholder} style={{ width: 400, marginRight: '8px' }}
+          type="text"
+          value={taskName}
+          onChange={(event) => setTaskName(event.target.value)}
+        />
+        <Button type="primary" onClick={() => props.add(taskName, props.taskId)}>{props.buttonName}</Button>
+      </div>
+    );
   };
 
   let allTasks = todos.data.map((task, id) => {
@@ -139,35 +153,33 @@ const App = props => {
           </Space >)
         };
       });
+    } else {
+      subTasks = <p key={Math.random()} style={{textAlign: 'center', margin: 0}}>
+        Add Some Task!</p>;
     }
-
-    const InputEl = () => {
-      const [taskName, setTaskName] = useState("");
-      return (
-        <div>
-          <Input placeholder="Enter Subtask Name" style={{ width: 400 }}
-            type="text"
-            value={taskName}
-            onChange={(event) => setTaskName(event.target.value)}
-          />
-          <Button type="primary" onClick={() => onCreateSubTask(taskName, taskId)}>Add Task</Button>
-        </div>
-      );
-    };
 
     return (
       <Space direction="vertical" style={{ marginTop: 24 }} key={task.name + Math.random()}>
         <Card
           title={task.name}
-          style={task.isAllDone ? { width: 600, textDecoration: "line-through" } : { width: 600 }}
-          extra={<Button type="primary"
-            onClick={() => onDuplicate(id)}>Duplicate</Button>}
+          style={task.isAllDone && task.task.length !== 0 ? { width: 600, textDecoration: "line-through", border: '1px solid #ddd' }
+            : { width: 600, border: '1px solid #ddd' }}
+          extra={<React.Fragment>
+            <Button
+              style={{ marginRight: '8px' }}
+              type="primary"
+              onClick={() => onDuplicate(id)}>Duplicate</Button>
+            <Button type="danger"
+              onClick={() => onDeleteTask(id)}>Delete</Button>
+          </React.Fragment>}
+
         >
           <Space direction="vertical" style={{ width: "100%" }}>
             <Space>
-              <InputEl />
+              <InputEl add={onCreateSubTask} placeholder="Enter Subtask Name"
+                taskId={taskId} buttonName='Add Task' />
             </Space>
-            <Divider />
+            <Divider style={{margin: '12px 0 8px 0'}} />
             {subTasks}
           </Space>
         </Card>
@@ -178,17 +190,19 @@ const App = props => {
   return (
     <Container>
       <Space>
-        <Card 
-        style={{marginBottom: '24px ', textAlign: 'center'}}>
-        This is an assignment given from the company I applied for a job. <br></br>
-        <strong>My task was to put in the logic with React Hooks.</strong> (Ant Design was given.) <br></br>
-        <a href="https://github.com/joetlobb/React-Front-End-Test">Github Source Code</a>
+        <Card
+          style={{ marginBottom: '24px ', textAlign: 'center', border: '1px solid #ddd' }}>
+          This is an assignment given from the company I applied for a job. <br></br>
+          <strong>My task was to put in the logic with React Hooks.</strong> (Ant Design was given.) <br></br>
+          <a href="https://github.com/joetlobb/React-Front-End-Test">Github Source Code</a>
         </Card>
       </Space>
       <Space>
-        <Input style={{ width: 400 }} placeholder="Enter Task Name"
+        <InputEl add={onCreateTask} placeholder="Enter Task Name"
+          taskId={null} buttonName='Create Task' />
+        {/* <Input style={{ width: 400 }} placeholder="Enter Task Name"
           onChange={(event) => taskInputHandler(event)} />
-        <Button type="primary" onClick={onCreateTask}>Create Task</Button>
+        <Button type="primary" onClick={onCreateTask}>Create Task</Button> */}
       </Space>
       {allTasks}
     </Container>
