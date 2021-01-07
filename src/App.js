@@ -9,7 +9,6 @@ const Container = styled.div`
   justify-content: flex-start;
   flex-direction: column;
   width: 100vw;
-  height: 100vh;
   padding: 16px 24px;
 `;
 
@@ -178,6 +177,14 @@ const App = props => {
 
   return (
     <Container>
+      <Space>
+        <Card 
+        style={{marginBottom: '24px ', textAlign: 'center'}}>
+        This is an assignment given from the company I applied for a job. <br></br>
+        <strong>My task was to put in the logic with React Hooks.</strong> (Ant Design was given.) <br></br>
+        <a href="https://github.com/joetlobb/React-Front-End-Test">Github Source Code</a>
+        </Card>
+      </Space>
       <Space>
         <Input style={{ width: 400 }} placeholder="Enter Task Name"
           onChange={(event) => taskInputHandler(event)} />
